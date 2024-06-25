@@ -1,35 +1,41 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { sendOtpFunction } from "../services/Apis";
+import { loginUserFunction } from "../services/Apis";
 import Spinner from "react-bootstrap/Spinner";
 
 import "../styles/mix.css";
 
 const Login = () => {
 	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 	const [spinner, setSpinner] = useState(false);
 	const navigate = useNavigate();
 
-	const sendOtp = async (e) => {
+	const handleLogin = async (e) => {
 		e.preventDefault();
-		if (email === "") {
-			toast.error("Enter your email");
+		if (email === "" || password === "") {
+			toast.error("Enter your email and password");
 		} else if (!email.includes("@")) {
 			toast.error("Enter valid email");
 		} else {
-			setSpinner(true)
-			const data = { email: email };
-			const response = await sendOtpFunction(data);
-			if (response.status === 200) {
+			setSpinner(true);
+			const data = { email, password };
+			try {
+				const response = await loginUserFunction(data); // Call the login API function
+				if (response.status === 200) {
+					setSpinner(false);
+					localStorage.setItem("userdbtoken", response.data.token); // Store token in local storage
+					toast.success("Login successful");
+					navigate("/dashboard"); // Redirect to dashboard
+				} else {
+					setSpinner(false);
+					toast.error(response.data.error || "Login failed");
+				}
+			} catch (error) {
 				setSpinner(false);
-				navigate("/user/otp", { state: email });
-			} else {
-				toast.error(
-					(response && response.data && response.data.error) || "Login failed"
-				);
+				toast.error(error.response?.data?.error || "Login failed");
 			}
-			console.log(response);
 		}
 	};
 	return (
@@ -40,7 +46,7 @@ const Login = () => {
 						<h1>Log In</h1>
 						<p>Welcome back, please login here.</p>
 					</div>
-					<form action="">
+					<form action="" onSubmit={handleLogin}>
 						<div className="form_input">
 							<label htmlFor="email">Email </label>
 							<input
@@ -52,14 +58,23 @@ const Login = () => {
 								}}
 							/>
 						</div>
-						<button className="btn" onClick={sendOtp}>
-							Login  
-							{spinner ? (
+						<div className="form_input">
+							<label htmlFor="password">Password </label>
+							<input
+								type="password"
+								name="passsword"
+								placeholder="password"
+								onChange={(e) => {
+									setPassword(e.target.value);
+								}}
+							/>
+						</div>
+						<button className="btn" type="submit">
+							Login
+							{spinner && (
 								<span>
 									<Spinner animation="border" role="status"></Spinner>
 								</span>
-							) : (
-								""
 							)}
 						</button>
 						<p>

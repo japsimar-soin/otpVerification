@@ -12,3 +12,7 @@ export const sendOtpFunction = async(data) => {
 export const userVerify = async(data) => {
 	return await commonrequest("POST", `${BACKEND_URL}/user/verifyotp`, data);
 }
+
+export const loginUserFunction = async (data) => {
+    return await commonrequest("POST", `${BACKEND_URL}/user/login`, data);
+};

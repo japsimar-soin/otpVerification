@@ -1,6 +1,8 @@
 import User from "../models/userSchema.js";
 import UserOtp from "../models/userOtp.js";
 import nodemailer from "nodemailer";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import "dotenv/config";
 
 const transporter = nodemailer.createTransport({
@@ -139,6 +141,29 @@ export const userVerify = async (req, res) => {
 	} catch (error) {
 		res.status(400).json({ error: "Invalid details", error });
 	}
+};
+
+export const loginUser = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ error: "User not found" });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: "Invalid credentials" });
+        }
+
+        const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, {
+            expiresIn: '1h',
+        });
+
+        res.status(200).json({ token, message: "Login successful" });
+    } catch (error) {
+        res.status(500).json({ error: "Internal server error" });
+    }
 };
 
 export const userLogin = async (req, res) => {
