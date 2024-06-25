@@ -17,7 +17,12 @@ const Dashboard = () => {
 		userValid();
 	}, []);
 
-	return <div>Dashboard</div>;
+	return (<>
+	<section>
+		
+		<ToastContainer />
+	</section>
+</>);
 };
 
 export default Dashboard;

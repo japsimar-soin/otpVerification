@@ -7,6 +7,7 @@ import Spinner from "react-bootstrap/Spinner";
 import "../styles/mix.css";
 
 const Login = () => {
+	const [passShow, setPassShow] = useState(false);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [spinner, setSpinner] = useState(false);
@@ -60,14 +61,24 @@ const Login = () => {
 						</div>
 						<div className="form_input">
 							<label htmlFor="password">Password </label>
-							<input
-								type="password"
-								name="passsword"
-								placeholder="password"
-								onChange={(e) => {
-									setPassword(e.target.value);
-								}}
-							/>
+							<div className="two">
+								<input
+									type={!passShow ? "password" : "text"}
+									name="passsword"
+									placeholder="password"
+									onChange={(e) => {
+										setPassword(e.target.value);
+									}}
+								/>
+								<div
+									className="showpass"
+									onClick={() => {
+										setPassShow(!passShow);
+									}}
+								>
+									{!passShow ? "Show" : "Hide"}
+								</div>
+							</div>
 						</div>
 						<button className="btn" type="submit">
 							Login
