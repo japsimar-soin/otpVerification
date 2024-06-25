@@ -5,7 +5,9 @@ export const commonrequest = async (methods, url, body, headers) => {
 		let config = {
 			method: methods,
 			url: url,
-            headers: headers ? { ...{ "Content-Type": "application/json" }, ...headers } : { "Content-Type": "application/json" },			
+			headers: headers
+				? { ...{ "Content-Type": "application/json" }, ...headers }
+				: { "Content-Type": "application/json" },
 			data: body,
 		};
 		const response = await axios(config);
@@ -19,5 +21,4 @@ export const commonrequest = async (methods, url, body, headers) => {
 		}
 		throw error;
 	}
-
 };

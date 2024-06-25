@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
 		required: true,
 		minlength: 6,
 	},
-	isVerified:{
+	isVerified: {
 		type: Boolean,
 		default: false,
 	},
@@ -51,7 +51,7 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.generateAuthToken = async function () {
 	try {
 		let newToken = jwt.sign({ _id: this._id }, secret, { expiresIn: "1d" });
-		this.tokens = this.tokens.concat({token: newToken});
+		this.tokens = this.tokens.concat({ token: newToken });
 		await this.save();
 		return newToken;
 	} catch (error) {

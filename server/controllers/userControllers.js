@@ -1,8 +1,8 @@
 import User from "../models/userSchema.js";
 import UserOtp from "../models/userOtp.js";
 import nodemailer from "nodemailer";
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import "dotenv/config";
 
 const transporter = nodemailer.createTransport({
@@ -37,19 +37,6 @@ export const userRegister = async (req, res) => {
 				message: "User registered successfully, please verify your email.",
 			});
 		}
-		// const otp = Math.floor(Math.random() * 900000 + 100000);
-		// const newOtp = new UserOtp({ email, otp });
-		// await newOtp.save();
-
-		// const mailOptions = {
-		// 	from: process.env.EMAIL,
-		// 	to: email,
-		// 	subject: "Verify Your Email",
-		// 	text: `Your OTP code is ${otp}`,
-		// };
-		// transporter.sendMail(mailOptions);
-
-		// res.status(200).json({ message: "OTP sent to your email", email });
 	} catch (error) {
 		res.status(500).json({ error: "internal server error", error });
 	}
@@ -66,7 +53,9 @@ export const verifyOtp = async (req, res) => {
 		const user = await User.findOneAndUpdate({ email }, { isVerified: true });
 		await UserOtp.findOneAndDelete({ email });
 
-		res.status(200).json({ message: "User verified successfully", userToken: user.token });
+		res
+			.status(200)
+			.json({ message: "User verified successfully", userToken: user.token });
 	} catch (error) {
 		res.status(500).json({ error: "Internal server error", error });
 	}
@@ -144,26 +133,26 @@ export const userVerify = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ error: "User not found" });
-        }
+	const { email, password } = req.body;
+	try {
+		const user = await User.findOne({ email });
+		if (!user) {
+			return res.status(400).json({ error: "User not found" });
+		}
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ error: "Invalid credentials" });
-        }
+		const isMatch = await bcrypt.compare(password, user.password);
+		if (!isMatch) {
+			return res.status(400).json({ error: "Invalid credentials" });
+		}
 
-        const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, {
-            expiresIn: '1h',
-        });
+		const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, {
+			expiresIn: "1h",
+		});
 
-        res.status(200).json({ token, message: "Login successful" });
-    } catch (error) {
-        res.status(500).json({ error: "Internal server error" });
-    }
+		res.status(200).json({ token, message: "Login successful" });
+	} catch (error) {
+		res.status(500).json({ error: "Internal server error" });
+	}
 };
 
 export const userLogin = async (req, res) => {

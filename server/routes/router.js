@@ -1,5 +1,12 @@
 import express from "express";
-import { userRegister, sendUserOtp, loginUser, forgotPassword, resetPassword, userVerify } from "../controllers/userControllers.js";
+import {
+	userRegister,
+	sendUserOtp,
+	loginUser,
+	forgotPassword,
+	resetPassword,
+	userVerify,
+} from "../controllers/userControllers.js";
 const router = new express.Router();
 
 router.post("/user/register", userRegister);

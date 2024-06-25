@@ -23,12 +23,12 @@ const Login = () => {
 			setSpinner(true);
 			const data = { email, password };
 			try {
-				const response = await loginUserFunction(data); // Call the login API function
+				const response = await loginUserFunction(data);
 				if (response.status === 200) {
 					setSpinner(false);
-					localStorage.setItem("userdbtoken", response.data.token); // Store token in local storage
+					localStorage.setItem("userdbtoken", response.data.token);
 					toast.success("Login successful");
-					navigate("/dashboard"); // Redirect to dashboard
+					navigate("/dashboard");
 				} else {
 					setSpinner(false);
 					toast.error(response.data.error || "Login failed");
