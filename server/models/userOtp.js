@@ -16,6 +16,11 @@ const userOtpSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	createdAt: {
+		type: Date,
+		default: Date.now,
+		index: { expires: '20m' } // This will automatically delete the document after 5 minutes
+	},
 });
 
 const UserOtp = mongoose.model("UserOtp", userOtpSchema);

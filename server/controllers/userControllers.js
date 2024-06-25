@@ -20,76 +20,124 @@ export const userRegister = async (req, res) => {
 	try {
 		const userExists = await User.findOne({ email: email });
 		if (userExists) {
-			res.status(400).json({ error: "Email already registered. Please login" });
+			return res
+				.status(400)
+				.json({ error: "Email already registered. Please login" });
 		} else {
-			const userregister = new User({ fname, email, password });
-			const storeData = await userregister.save();
-			res.status(200).json(storeData);
+			const userregister = new User({
+				fname,
+				email,
+				password,
+				isVerified: false,
+			});
+			await userregister.save();
+			res.status(200).json({
+				message: "User registered successfully, please verify your email.",
+			});
 		}
+		// const otp = Math.floor(Math.random() * 900000 + 100000);
+		// const newOtp = new UserOtp({ email, otp });
+		// await newOtp.save();
+
+		// const mailOptions = {
+		// 	from: process.env.EMAIL,
+		// 	to: email,
+		// 	subject: "Verify Your Email",
+		// 	text: `Your OTP code is ${otp}`,
+		// };
+		// transporter.sendMail(mailOptions);
+
+		// res.status(200).json({ message: "OTP sent to your email", email });
 	} catch (error) {
-		res.status(400).json({ error: "Invalid credentials", error });
+		res.status(500).json({ error: "internal server error", error });
+	}
+};
+
+export const verifyOtp = async (req, res) => {
+	const { email, otp } = req.body;
+	try {
+		const userOtp = await UserOtp.findOne({ email });
+		if (!userOtp || userOtp.otp !== otp) {
+			return res.status(400).json({ error: "Invalid OTP" });
+		}
+
+		const user = await User.findOneAndUpdate({ email }, { isVerified: true });
+		await UserOtp.findOneAndDelete({ email });
+
+		res.status(200).json({ message: "User verified successfully", userToken: user.token });
+	} catch (error) {
+		res.status(500).json({ error: "Internal server error", error });
 	}
 };
 
 export const sendUserOtp = async (req, res) => {
 	const { email } = req.body;
 	if (!email) {
-		res.status(400).json({ error: "Enter your email" });
+		return res.status(400).json({ error: "Enter your email" });
 	}
 
 	try {
-		const userExists = await User.findOne({ email: email });
-		if (userExists) {
-			const otp = Math.floor(Math.random() * 900000 + 100000);
-
-			const emailExists = await UserOtp.findOne({ email: email });
-			if (emailExists) {
-				const updateData = await UserOtp.findByIdAndUpdate(
-					{ _id: emailExists._id },
-					{ otp: otp },
-					{ new: true }
-				);
-				await updateData.save();
-
-				const mailOptions = {
-					from: process.env.EMAIL,
-					to: email,
-					subject: "Verify Otp",
-					text: `OTP: ${otp}`,
-				};
-				transporter.sendMail(mailOptions, (error, info) => {
-					if (error) {
-						console.log("error", error);
-						res.status(400).json({ error: "Email not sent" });
-					} else {
-						console.log("Email sent on registered email id", info.response);
-						res.status(200).json({ message: "Email sent successfully" });
-					}
-				});
-			} else {
-				const saveOtpData = new UserOtp({ email, otp: otp });
-				await saveOtpData.save();
-				const mailOptions = {
-					from: process.env.EMAIL,
-					to: email,
-					subject: "Verify Otp",
-					text: `OTP: ${otp}`,
-				};
-				transporter.sendMail(mailOptions, (error, info) => {
-					if (error) {
-						console.log("error", error);
-						res.status(400).json({ error: "Email not sent" });
-					} else {
-						console.log("Email sent on registered email id", info.response);
-						res.status(200).json({ message: "Email sent successfully" });
-					}
-				});
-			}
-		} else {
-			res.status(400).json({ error: "User does not exist" });
+		const user = await User.findOne({ email: email });
+		if (!user) {
+			return res
+				.status(400)
+				.json({ error: "User does not exist. Please register first." });
 		}
+
+		const otp = Math.floor(Math.random() * 900000 + 100000);
+
+		const emailExists = await UserOtp.findOne({ email: email });
+		if (emailExists) {
+			await UserOtp.findByIdAndUpdate(
+				{ _id: emailExists._id },
+				{ otp: otp },
+				{ new: true }
+			);
+		} else {
+			const saveOtpData = new UserOtp({ email, otp: otp });
+			await saveOtpData.save();
+		}
+
+		const mailOptions = {
+			from: process.env.EMAIL,
+			to: email,
+			subject: "Verify Otp",
+			text: `OTP: ${otp}`,
+		};
+		transporter.sendMail(mailOptions, (error, info) => {
+			if (error) {
+				console.log("error", error);
+				return res.status(400).json({ error: "Email not sent" });
+			} else {
+				console.log("Email sent on registered email id", info.response);
+				return res.status(200).json({ message: "Email sent successfully" });
+			}
+		});
 	} catch (error) {
 		res.status(400).json({ error: "Invalid credentials", error });
+	}
+};
+
+export const userVerify = async (req, res) => {
+	const { email, otp } = req.body;
+	if (!otp || !email) {
+		return res.status(400).json({ error: "Both fields are required" });
+	}
+	try {
+		const otpGenerated = await UserOtp.findOne({ email: email });
+		if (otpGenerated.otp === otp) {
+			const userExists = await User.findOne({ email: email });
+			userExists.isVerified = true;
+			await userExists.save();
+			const token = await userExists.generateAuthToken();
+			res
+				.status(200)
+				.json({ message: "User logged in successfully", userToken: token });
+		} else {
+			res.status(400).json({ error: "OTP doesn't match" });
+		}
+	} catch (error) {
+		res.status(400).json({ error: "Invalid details", error });
 	}
 };
 
@@ -99,15 +147,22 @@ export const userLogin = async (req, res) => {
 		res.status(400).json({ error: "Both fields are required" });
 	}
 	try {
-		const otpGenerated = await UserOtp.findOne({ email: email });
-		if (otpGenerated.otp === otp) {
-			const userExists = await User.findOne({email: email});
-			const token = await userExists.generateAuthToken();
-			res.status(200).json({message: "User logged in successfully", userToken: token});
+		const userOtp = await UserOtp.findOne({ email });
+		if (userOtp && userOtp.otp === otp) {
+			const user = await User.findOne({ email });
+			const token = await user.generateAuthToken();
+			await UserOtp.findOneAndDelete({ email });
+
+			res
+				.status(200)
+				.json({ message: "User logged in successfully", userToken: token });
 		} else {
-			res.status(400).json({ error: "OTP doesn't match" });
+			res.status(400).json({ error: "Invalid OTP" });
 		}
 	} catch (error) {
-		res.status(400).json({ error: "invalid details", error });
+		res.status(500).json({ error: "internal server error", error });
 	}
 };
+
+export const forgotPassword = async (req, res) => {};
+export const resetPassword = async (req, res) => {};
