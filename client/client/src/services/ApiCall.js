@@ -14,11 +14,13 @@ export const commonrequest = async (methods, url, body, headers) => {
 		return response;
 	} catch (error) {
 		if (error.response) {
-			console.error("Error response data:", error.response.data);
-			console.error("Error response status:", error.response.status);
-		} else {
-			console.error("Error message:", error.message);
-		}
-		throw error;
+			throw new Error(error.response.data.error || 'Internal server error');
+			// console.error("Error response data:", error.response.data);
+			// console.error("Error response status:", error.response.status);
+		} else if (error.request) {
+            throw new Error('No response received from the server');
+        } else {
+            throw new Error('Error in setting up the request: ' + error.message);
+        }
 	}
 };

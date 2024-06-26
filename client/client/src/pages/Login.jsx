@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { loginUserFunction } from "../services/Apis";
+import { loginUserFunction } from "../services/Apis.js";
+import { getUserTypeFunction } from "../services/helper.js";
 import Spinner from "react-bootstrap/Spinner";
 
 import "../styles/mix.css";
@@ -21,24 +22,40 @@ const Login = () => {
 			toast.error("Enter valid email");
 		} else {
 			setSpinner(true);
-			const data = { email, password };
+			const userType = getUserTypeFunction(email);
+			console.log("User type:", userType);
+
+			const data = { email: email, password: password, userType: userType };
 			try {
 				const response = await loginUserFunction(data);
 				if (response.status === 200) {
-					setSpinner(false);
 					localStorage.setItem("userdbtoken", response.data.token);
 					toast.success("Login successful");
-					navigate("/dashboard");
+					switch (response.data.userType) {
+                        case "student":
+                            navigate("/dashboardStudent");
+                            break;
+                        case "professor":
+                            navigate("/dashboardProfessor");
+                            break;
+                        case "recruiter":
+                            navigate("/dashboardRecruiter");
+                            break;
+                        default:
+                            navigate("/");
+                            break;
+					}
 				} else {
-					setSpinner(false);
 					toast.error(response.data.error || "Login failed");
 				}
 			} catch (error) {
-				setSpinner(false);
 				toast.error(error.response?.data?.error || "Login failed");
+			} finally {
+				setSpinner(false);
 			}
 		}
 	};
+
 	return (
 		<>
 			<section>

@@ -31,6 +31,12 @@ const userSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false,
 	},
+	userType: {
+        type: String,
+        required: true,
+        enum: ["student", "professor", "recruiter"],
+        default: "recruiter",
+    },
 	tokens: [
 		{
 			token: {

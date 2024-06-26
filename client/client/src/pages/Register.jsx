@@ -1,8 +1,8 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { registerfunction, sendOtpFunction } from "../services/Apis.js";
-
+import { registerFunction, sendOtpFunction } from "../services/Apis.js";
+import { getUserTypeFunction } from "../services/helper.js";
 import "../styles/mix.css";
 
 const Register = () => {
@@ -18,6 +18,7 @@ const Register = () => {
 	const handleChange = (e) => {
 		setForm({ ...form, [e.target.name]: e.target.value });
 	};
+
 	const handleRegister = async (e) => {
 		e.preventDefault();
 		const { fname, email, password } = form;
@@ -33,18 +34,32 @@ const Register = () => {
 			toast.error("Enter a valid password (minimum 6 characters)");
 			return;
 		}
+
+		const userType = getUserTypeFunction(email);
+        console.log("User type:", userType);
+
 		try {
-			const response = await registerfunction(form);
+			const response = await registerFunction(form);
 			if (response.status === 200) {
 				toast.success(response.data.message);
 				await sendOtpFunction({ email: form.email });
 				navigate("/user/otp", { state: { email: form.email } });
 			} else {
-				toast.error(response.data.error || "Registration failed");
+				toast.error(response.data.error || "User already exists");
 			}
 		} catch (error) {
-			toast.error(error.response?.data?.error || "Registration failed");
+			toast.error(error.response?.data?.error || "Already registered. Please login");
 		}
+	};
+
+	const handleVerifyLink = () => {
+		const email = form.email;
+		if (!email || !email.includes("@")) {
+			toast.error("Enter a valid email first");
+			return;
+		}
+		localStorage.setItem("unverifiedEmail", email);
+		navigate("/user/otp", { state: { email } });
 	};
 
 	return (
@@ -102,7 +117,10 @@ const Register = () => {
 							Sign up
 						</button>
 						<p>
-							Already have an account? <NavLink to="/">Login</NavLink>
+							Already have an account? <NavLink to="/" style={{textDecoration: "none"}} >Login</NavLink>
+						</p>
+						<p>
+							Account not verified? <NavLink to="/user/otp" style={{textDecoration: "none"}} onClick={handleVerifyLink} className="verify-link" >Verify</NavLink>
 						</p>
 					</form>
 				</div>

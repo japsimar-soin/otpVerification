@@ -3,6 +3,9 @@ import UserOtp from "../models/userOtp.js";
 import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import fs from "fs";
+import xlsx from "xlsx";
+import csv from "csv-parser";
 import "dotenv/config";
 
 const transporter = nodemailer.createTransport({
@@ -13,6 +16,18 @@ const transporter = nodemailer.createTransport({
 	},
 });
 
+function getUserTypeFunction(email) {
+	const studentPattern = /^.+_20\d{2}[BMbm]\w+@nitsri\.ac\.in$/;
+	const nitsriDomainPattern = /@nitsri\.ac\.in$/;
+
+	if (studentPattern.test(email)) {
+		return "student";
+	} else if (nitsriDomainPattern.test(email)) {
+		return "professor";
+	} else {
+		return "recruiter";
+	}
+}
 export const userRegister = async (req, res) => {
 	const { fname, email, password } = req.body;
 	if (!fname || !email || !password) {
@@ -26,10 +41,12 @@ export const userRegister = async (req, res) => {
 				.status(400)
 				.json({ error: "Email already registered. Please login" });
 		} else {
+			const userType = getUserTypeFunction(email);
 			const userregister = new User({
 				fname,
 				email,
 				password,
+				userType,
 				isVerified: false,
 			});
 			await userregister.save();
@@ -38,7 +55,10 @@ export const userRegister = async (req, res) => {
 			});
 		}
 	} catch (error) {
-		res.status(500).json({ error: "internal server error", error });
+		console.error("Error during user registration:", error);
+		res
+			.status(500)
+			.json({ error: "internal server error", details: error.message });
 	}
 };
 
@@ -144,12 +164,14 @@ export const loginUser = async (req, res) => {
 		if (!isMatch) {
 			return res.status(400).json({ error: "Invalid credentials" });
 		}
-
+		if (!user.isVerified) {
+            return res.status(403).json({ error: "User not verified" });
+        }
 		const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, {
 			expiresIn: "1h",
 		});
-
-		res.status(200).json({ token, message: "Login successful" });
+		const userType = getUserTypeFunction(email);
+		res.status(200).json({ token, message: "Login successful", userType });
 	} catch (error) {
 		res.status(500).json({ error: "Internal server error" });
 	}
@@ -179,4 +201,57 @@ export const userLogin = async (req, res) => {
 };
 
 export const forgotPassword = async (req, res) => {};
+
 export const resetPassword = async (req, res) => {};
+
+function handleCSV(file, callback) {
+	const results = [];
+	fs.createReadStream(file.tempFilePath)
+		.pipe(csv())
+		.on("data", (data) => results.push(data))
+		.on("end", () => callback(null, results))
+		.on("error", (err) => callback(err, null));
+}
+function handleExcel(file, callback) {
+	const workbook = xlsx.readFile(file.tempFilePath);
+	const sheet_name_list = workbook.SheetNames;
+	const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+	callback(null, data);
+}
+export const uploadFileData = async (req, res) => {
+	try {
+		if (!req.files || Object.keys(req.files).length === 0) {
+			return res.status(400).send("No files were uploaded.");
+		}
+
+		const file = req.files.file;
+
+		if (file.mimetype === "text/csv") {
+			// Process CSV file
+			handleCSV(file, (err, data) => {
+				if (err) {
+					return res.status(500).send({ error: "Error processing CSV file." });
+				}
+				res.status(200).json({ data });
+			});
+		} else if (
+			file.mimetype ===
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+		) {
+			// Process Excel file
+			handleExcel(file, (err, data) => {
+				if (err) {
+					return res
+						.status(500)
+						.send({ error: "Error processing Excel file." });
+				}
+				res.status(200).json({ data });
+			});
+		} else {
+			res.status(400).send({ error: "Unsupported file type." });
+		}
+	} catch (err) {
+		console.error(err);
+		res.status(500).send("Server Error");
+	}
+};
