@@ -6,7 +6,7 @@ export const getUserTypeFunction = (email) => {
 
     if (studentPattern.test(email)) {
         return "student";
-    } else if (nitsriDomainPattern.test(email)) {
+    } else if (email === "japsimar2k03@gmail.com" || nitsriDomainPattern.test(email)) {
         return "professor";
     } else {
         return "recruiter";

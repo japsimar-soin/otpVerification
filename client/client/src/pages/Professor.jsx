@@ -6,7 +6,7 @@ import { csv } from "csvtojson";
 import { parse } from "papaparse";
 import "../styles/mix.css";
 
-const DashboardRecruiter = () => {
+const Professor = () => {
 	const navigate = useNavigate();
 	const [file, setFile] = React.useState(null);
 	const [selectedOption, setSelectedOption] = React.useState("");
@@ -20,6 +20,9 @@ const DashboardRecruiter = () => {
 		if (file) {
 			const fileContent = await parseCSV(file);
 			console.log("Parsed JSON:", fileContent);
+
+			// Example: send fileContent to backend for further processing
+			// uploadFileToBackend(fileContent);
 		} else {
 			toast.error("Please select a file to upload");
 		}
@@ -58,44 +61,54 @@ const DashboardRecruiter = () => {
 			<section>
 				<div className="form_data">
 					<div className="form_heading">
-						<h1>Recruiter Dashboard</h1>
+						<h1>Professor Dashboard</h1>
 						<p style={{ textAlign: "center" }}>
-							You can view the details here.
+							You can view, edit, or upload the details here.
 						</p>
 					</div>
 					<form>
+						<div className="form_input_dash">
+							<label>Upload files </label>
+							<button
+								type="button"
+								onClick={handleUpload}
+								className="small-btn"
+							>
+								Upload File
+							</button>
+							<input type="file" onChange={handleFileChange} />
+						</div>
 						<div className="form_input_dash">
 							<label>View details </label>
 							<button type="button" className="small-btn">
 								{" "}
 								View{" "}
 							</button>
-							<div className="dropdown-container">
-								<div className="form_input">
-									<label htmlFor="category1">Job Profile</label>
-									<select id="category1">
-										<option value="option1">Option 1</option>
-										<option value="option2">Option 2</option>
-										<option value="option3">Option 3</option>
-									</select>
-								</div>
-								<div className="form_input">
-									<label htmlFor="category2">Branch</label>
-									<select id="category2">
-										<option value="option1">IT</option>
-										<option value="option2">CSE</option>
-										<option value="option3">ECE</option>
-									</select>
-								</div>
-								<div className="form_input">
-									<label htmlFor="category3">Category</label>
-									<select id="category3">
-										<option value="option1">Option 1</option>
-										<option value="option2">Option 2</option>
-										<option value="option3">Option 3</option>
-									</select>
-								</div>
+							<div className="custom-select-box">
+								<select
+									id="selectOption"
+									value={selectedOption}
+									onChange={(e) => setSelectedOption(e.target.value)}
+								>
+									<option value="" disabled>
+										Select an option
+									</option>
+									<option value="option1">IT</option>
+									<option value="option2">CSE</option>
+									<option value="option3">ECE</option>
+								</select>
+								{selectedOption && (
+									<span className="selected-text">{selectedOption}</span>
+								)}
 							</div>
+						</div>
+						<div className="form_input_dash">
+							<label>Edit details </label>
+							<button type="button" className="small-btn">
+								{" "}
+								Edit{" "}
+							</button>
+							<input type="text" onChange={handleFileChange} />
 						</div>
 					</form>
 				</div>
@@ -105,4 +118,4 @@ const DashboardRecruiter = () => {
 	);
 };
 
-export default DashboardRecruiter;
+export default Professor;
