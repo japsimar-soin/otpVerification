@@ -25,7 +25,7 @@ const Dashboard = () => {
 			toast.error("Please select a file to upload");
 		}
 	};
-	
+
 	const parseCSV = async (file) => {
 		return new Promise((resolve, reject) => {
 			parse(file, {

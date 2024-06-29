@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { registerFunction, sendOtpFunction } from "../services/Apis.js";
+import { registerFunction } from "../services/Apis.js";
 import { getUserTypeFunction } from "../services/helper.js";
 import "../styles/mix.css";
 
@@ -42,7 +42,7 @@ const Register = () => {
 			const response = await registerFunction(form);
 			if (response.status === 200) {
 				toast.success(response.data.message);
-				await sendOtpFunction({ email: form.email });
+				// await sendOtpFunction({ email: form.email });
 				navigate("/user/otp", { state: { email: form.email } });
 			} else {
 				toast.error(response.data.error || "User already exists");
@@ -52,15 +52,15 @@ const Register = () => {
 		}
 	};
 
-	const handleVerifyLink = () => {
-		const email = form.email;
-		if (!email || !email.includes("@")) {
-			toast.error("Enter a valid email first");
-			return;
-		}
-		localStorage.setItem("unverifiedEmail", email);
-		navigate("/user/otp", { state: { email } });
-	};
+	// const handleVerifyLink = () => {
+	// 	const email = form.email;
+	// 	if (!email || !email.includes("@")) {
+	// 		toast.error("Enter a valid email first");
+	// 		return;
+	// 	}
+	// 	localStorage.setItem("unverifiedEmail", email);
+	// 	navigate("/user/otp", { state: { email } });
+	// };
 
 	return (
 		<>
@@ -120,7 +120,7 @@ const Register = () => {
 							Already have an account? <NavLink to="/" style={{textDecoration: "none"}} >Login</NavLink>
 						</p>
 						<p>
-							Account not verified? <NavLink to="/user/otp" style={{textDecoration: "none"}} onClick={handleVerifyLink} className="verify-link" >Verify</NavLink>
+							Account not verified? <NavLink to="/user/otp" style={{textDecoration: "none"}} className="verify-link" >Verify</NavLink>
 						</p>
 					</form>
 				</div>

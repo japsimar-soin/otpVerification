@@ -53,7 +53,8 @@ const Otp = () => {
 		// }
 		try {
 			const response = await userVerifyFunction({
-				email, otp
+				email,
+				otp,
 			});
 			const userType = getUserTypeFunction(email);
 			if (response.status === 200) {
@@ -93,12 +94,12 @@ const Otp = () => {
 						</p>{" "}
 					</div>
 					{spinner && (
-                        <div className="spinner">
-                            <Spinner animation="border" role="status">
-                                {/* <span className="sr-only">Loading...</span> */}
-                            </Spinner>
-                        </div>
-                    )}
+						<div className="spinner">
+							<Spinner animation="border" role="status">
+								{/* <span className="sr-only">Loading...</span> */}
+							</Spinner>
+						</div>
+					)}
 					<form onSubmit={verifyOtp} action="">
 						<div className="form_input">
 							<label htmlFor="otp">OTP</label>

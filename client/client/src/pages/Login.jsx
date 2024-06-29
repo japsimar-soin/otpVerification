@@ -32,18 +32,18 @@ const Login = () => {
 					localStorage.setItem("userdbtoken", response.data.token);
 					toast.success("Login successful");
 					switch (response.data.userType) {
-                        case "student":
-                            navigate("/dashboardStudent");
-                            break;
-                        case "professor":
-                            navigate("/dashboardProfessor");
-                            break;
-                        case "recruiter":
-                            navigate("/dashboardRecruiter");
-                            break;
-                        default:
-                            navigate("/");
-                            break;
+						case "student":
+							navigate("/dashboardStudent");
+							break;
+						case "professor":
+							navigate("/dashboardProfessor");
+							break;
+						case "recruiter":
+							navigate("/dashboardRecruiter");
+							break;
+						default:
+							navigate("/");
+							break;
 					}
 				} else {
 					toast.error(response.data.error || "Login failed");

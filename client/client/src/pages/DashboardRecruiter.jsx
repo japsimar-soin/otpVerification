@@ -8,37 +8,6 @@ import "../styles/mix.css";
 
 const DashboardRecruiter = () => {
 	const navigate = useNavigate();
-	const [file, setFile] = React.useState(null);
-	const [selectedOption, setSelectedOption] = React.useState("");
-
-	const handleFileChange = (e) => {
-		const selectedFile = e.target.files[0];
-		setFile(selectedFile);
-	};
-
-	const handleUpload = async () => {
-		if (file) {
-			const fileContent = await parseCSV(file);
-			console.log("Parsed JSON:", fileContent);
-		} else {
-			toast.error("Please select a file to upload");
-		}
-	};
-
-	const parseCSV = async (file) => {
-		return new Promise((resolve, reject) => {
-			parse(file, {
-				header: true,
-				complete: (results) => {
-					const jsonData = results.data;
-					resolve(jsonData);
-				},
-				error: (error) => {
-					reject(error);
-				},
-			});
-		});
-	};
 
 	const userValid = () => {
 		let token = localStorage.getItem("userdbtoken");
